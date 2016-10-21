@@ -1,0 +1,219 @@
+
+\subsection{生体高分子の時間$\cdot$空間スケールとシミュレーション}
+\label{subsec:timespaceMD}
+
+タンパク質や核酸といった
+生体高分子の構造と機能を原子解像度で理解するために、
+全原子型分子動力学シミュレーション((Molecular Dynamics, MD))は、
+今日、極めて有力なツールとなっている。~\cite{Dror2012,Tukerman2000}
+最初期の生体高分子の MD は、
+真空中のタンパク質 Bovine Pancreatic Trypsin Inhibitor (BPTI)にたいする
+約 10  ps の計算に過ぎないものであった。~\cite{MacCamon1976}
+それが、現在の計算資源では水中の BPTI の約 1 ms の計算も可能になっている。~\cite{Shaw2009}
+また、空間スケールについても、
+Polio Virus (約 10$^{6}$ 原子系)やHIV Virus (約 10$^{7}$ 原子系)
+のシミュレーションが行われるまでに拡張している。~\cite{Modylas2013,NAMD2013}
+図~\ref{fig:timespacescale}は、生体高分子の関わる機能$\cdot$構造の時間$\cdot$空間スケールと
+MD や生体高分子を対象とした実験手法(X 線結晶解析、核磁気共鳴、電子顕微鏡)の
+時間$\cdot$空間スケールをまとめたものである。
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=12cm,clip]{figs/Time_Space.png}
+  \caption{生体高分子の時間$\cdot$空間スケール
+    とシミュレーション$\cdot$実験手法の時間$\cdot$空間スケール。
+    AFM, atomic force microscopy; EM, electron microscopy;
+    FRET, Forster resonance energy transfer; NMR, nuclear magnetic resonance。
+    \cite{Dror2012} の Figure 2 を引用。}
+  \label{fig:timespacescale}
+\end{figure}
+今日では、長距離相互作用を考慮したシミュレーションの計算スケールの限界は、
+10$^{7}$ 原子数 $\times$ 10$^{-6}$ s程度にまでいたっている。
+このような現状を踏まえ、MD を用いて
+タンパク質などの生体高分子の機能メカニズムを、
+原子解像度で解明するような研究が強く動機付けられてきている。
+
+生体高分子は、リガンドの結合などの摂動によって、構造を変化させ、機能を発揮する。
+そのために、機能メカニズム解明には、MD によって構造変化過程を再現することが必要となる。
+しかしながら、MD の追跡できる時間スケールは、ms--s に及ぶタンパク質の構造変化の時間スケール
+には、まだ到達していない。
+単に長時間の計算を実行するだけでは、メカニズムに関係する重要な知見を含むデータを得ることは
+難しい。
+
+そこで、MD を熱力学量を計算するための統計サンプリングと見做し、
+さまざまな方法によって通常の計算では起こりえないようなサンプリングを行う
+効率的サンプリンングが重要となる。
+本稿では、効率的サンプリンングの代表的な手法について解説を行う。
+
+\subsection{分子動力学と熱力学量}
+\label{subsec:MDbasic}
+
+分子動力学は、原子を質点で表現し、原子間の相互作用を
+与えるポテンシャルを力場(Force field)で近似して、
+運動方程式を数値的に解くことで系の
+時間発展する軌跡(trajectory) $\{\mathbf{r}\}$ を求める手法である。
+%において、
+系の時間発展を求めるということ以外に、
+軌跡を用いて、熱力学量を計算する
+ことが MD の役割である。
+
+熱浴などの外場のない場合、$N$ 原子からなる系のハミルトアン(全エネルギー)
+$H(\mathbf{p},\mathbf{r})$ は、
+\beq
+H(\mathbf{p},\mathbf{r}) \equiv \sum_{i=1}^{N}\frac{\mathbf{p}_{i}^{2}}{2m_{i}} +U(\mathbf{r})
+\label{eq:Hamiltonian}
+\eeq
+とかける。
+ただし、$\mathbf{p}$ は運動量、$\mathbf{r}$ は位置、
+$m_{i}$ を原子$i$の質量、$U(\mathbf{r})$ を系の原子間の相互作用を表すポテンシャルとする。
+正準方程式によって、運動方程式は、
+\beq
+\dot{\mathbf{r}}_{i} &= \frac{\mathbf{\del H}}{{\del \mathbf{p}_{i}}}
+=\frac{\mathbf{p}_{i}}{{m}_{i}} \\
+\dot{\mathbf{p}}_{i} &= -\frac{\del H}{\del \mathbf{r}_{i}}
+= - \frac{\del U}{\del \mathbf{r}_{i}} = \mathbf{F}_{i}({\mathbf{r}})
+\label{eq:eom}
+\eeq
+となる。$\mathbf{F}_{i}({\mathbf{r}})$ は、原子$i$に働く力である。
+すこし、式を変形して、Newton の運動方程式
+\beq
+m\ddot{\mathbf{r}}_{i} = \mathbf{F}_{i}(\mathbf{r})
+\label{eq:eom_Newton}
+\eeq
+を得る。
+式(~\ref{eq:eom_Newton})を数値的に解くことで得られる軌跡は、
+エネルギー一定の統計集団(ミクロカノニカルアンサンブル)に従う。
+エルゴード仮説に従えば、統計平均と長時間平均は一致する。
+物理量 $f$ の長時間平均 $<f>_{t}$ は、
+\beq
+<f>_{t} = \lim_{T \to \inf} \frac{1}{T} \int_{0}^{T} f(\mathbf{r(t)}) dt
+\label{eq:long_time_ave}
+\eeq
+で定義することができる。
+よって、シミュレーションの結果からは、
+\beq
+<f>_{t} = \lim_{N \to \inf} \frac{1}{N \times \delta t}
+\sum_{i=1}^{N} \delta t f(\mathbf{r(t)})
+\label{eq:long_time_ave_sim}
+\eeq
+と計算できる。
+ただし、$N$ は、総ステップ数、$\delta t$ は、タイムステップ幅とする。
+
+統計力学的には、
+温度一定の統計集団(カノニカルアンサンブル)が重要となる。
+系が、熱浴に接している場合、状態 ${\mathbf{r}}$ の出現確率は、
+\beq
+\rho({\mathbf{r}}) = \frac{e^{-\beta U({\mathbf{r}})}}{Q}
+\label{NVT}
+\eeq
+となる。
+ただし、
+$Q=\int e^{\beta U({\mathbf{r}})}d\mathbf{r}$ は
+分配関数、$\beta=1/k_{B}T$ は逆温度、$k_{B}$ は Boltzman 定数、$T$ は温度である。
+この出現確率に対応する軌跡をえるためには、
+次の拡張系(Nos$\acute{e}$-Hoover chain)のハミルトアン
+\beq
+H' = H(\mathbf{p},\mathbf{r}) +
+\sum_{k=1}^{M}\frac{\mathbf{p}_{\eta_{k}}^{2}}{2Q_{k}} +
+kT ( dN \eta _{1} + \sum _{k=2}^{M} \eta_{k} )
+\label{eq:NHC_Hamiltonian}
+\eeq
+に対応する運動方程式を解けばよい。
+\beq
+\dot{\mathbf{r}}_{i} &= \frac{\mathbf{p}_{i}}{{m}_{i}} \\
+\dot{\mathbf{p}}_{i} &= \mathbf{F}_{i} - \frac{p_{\eta}}{Q_{1}}\mathbf{p}_{i} \\
+\dot{\eta}_{k} &= \frac{p_{\eta_{k}}}{Q_{k}}
+\dot{p}_{\eta_{k}} &= G_{k} - \frac{p_{\eta_{k}}}{Q_{k}} \\
+\dot{p}_{\eta_{M}} &= G_{M} \\
+G_{1} &= \sum_{l=1}^{N}\frac{\mathbf{p}_{i}^{2}}{m_{i}} - dNkT \\
+G_{k} &= \frac{p_{\eta_{k-1}}^{2}}{Q_{k-1}} - kT
+\label{eq:NHC_eom}
+\eeq
+式(\ref{eq:NHC_eom})の方程式をすこし変形し、簡略化して、
+\beq
+m \ddot{\mathbf{r}}_{i} = \mathbf{F}_{i}(\mathbf{r}) + ({\rm thermo},T)
+\label{eq:NHC_eom2}
+\eeq
+と書き、Nos$\acute{e}$-Hoover chain の運動方程式と呼ぶことにする。
+
+カノニカルアンサンブルでは、熱力学量は、平均値として計算できる。
+物理量 $f$ の平均値 $<f>_{eq}$ は、
+\beq
+<f>_{eq} = \int f(\mathbf{r}) \rho(\mathbf{r}) d\mathbf{r}
+\label{eq:TV}
+\eeq
+となる。
+MD の結果から熱力学量を求めるためには、単に、式(~\ref{eq:NHC_eom}) を数値積分して得た
+軌跡に対応する物理量の平均値(や揺らぎ)を計算すればよい。
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \beq                                                                %%
+%% <f> = \frac{1}{\delta t T} \sum_{t=1}^{T} f(\mathbf{r(t*\delta t)}) %%
+%% \label{eq:AV}                                                       %%
+%% \eeq                                                                %%
+%% ただし、                                                            %%
+%% $\delta t$ はMD のタイムステップ幅、                                %%
+%% $T$ はMD のタイムステップ数、                                       %%
+%% $\mathbf{r(t*\delta t)}$ は、時刻 $t*\delta t$ での座標である。     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+例えば、内部エネルギー$E$ は、ポテンシャルエネルギー$U(\mathbf{r})$の平均として、
+\beq
+E = <U(\mathbf{r})>
+\label{eq:E}
+\eeq
+と計算できる。
+また、熱容量$C_{v}$ は、ポテンシャルエネルギー$U(\mathbf{r})$の揺らぎを使って、
+\beq
+C_{v} = \frac{1}{k_{B}T^{2}}(<U>^{2}-<U^{2}>)
+\label{eq:Cv}
+\eeq
+と計算できる。
+
+\subsection{自由エネルギー計算と効率的サンプリンング}
+\label{subsec:FreeEnergyintro}
+
+さまざまな熱力学量のうち、生体高分子の機能解析には、
+反応座標にそった
+自由エネルギーのプロファイル
+を計算することが重要となる。
+\begin{table}[hbtp]
+  \caption{本稿で取り上げる効率的サンプリンング手法}
+  \label{table:enganced_sampling}
+  \centering
+  \begin{tabular}{lc}
+    \hline
+    手法  & コメント  \\
+    \hline \hline
+    Umbrella Sampling &  前提とする CV にそった自由エネルギー地形を計算する。\\
+    Replica 交換 MD   &  CV を事前に要求しない。温度の交換をする。  \\
+    Hamilton Replica 交換 MD  &  Replica 交換 MD の一般化。 \\
+    Tempereture Acceralated MD &  CV 系の時間発展をする拡張系を導入。 \\
+    String 法 & MFEP を計算する。 \\
+    log MFD  & \lq \lq On--the--fly'' で自由エネルギー地形を計算する。 \\
+    \hline
+  \end{tabular}
+\end{table}
+$z=\theta(\mathbf{r})$ を
+座標$\mathbf{r}$ の関数 $\theta$ で定義される集団座標(Collective Variable, CV)として、
+$z$ を反応座標としたときに、$z$にそった自由エネルギープロファイルは、
+\beq
+F(\mathbf{z})=
+-\frac{1}{\beta}\ln \{ Q^{-1} \int e^{-\beta U(\mathbf{r})}\prod_{l=1}^{L}
+\delta(\theta_{l}(\mathbf{r})-z_{l})d\mathbf{x}\}
+\label{eq:def_F}
+\eeq
+と定義できる。
+(自由エネルギー地形、Potential of Mean Forcel ともよぶ)
+ただし、$\delta$ は、ディラックのデルタ関数、$L$ は集団座標 $\mathbf{z}$ の次元であるとする。
+式(\ref{eq:def_F})は、MD の軌跡から集団座標 $z$ の分布を計算し、対数の $-\frac{1}{\beta}$ 倍
+を計算することで求めることができる。ただし、そのためには、$\mathbf{z}$ にそって十分な
+サンプリンングができていることが条件となる。
+
+小節~\ref{subsec:timespaceMD}でのべたように、生体高分子の機能発現(構造変化)は、MD の
+タイムスケールを超えていて、また、そのような変化がおこったとしても十分なサンプリンング
+ができている保証はないために、実際には、効率的サンプリンングという手法が必要になる。
+
+本稿では、
+ Umbrella Sampling(第~\ref{sec_02US}章),
+ Replica 交換法(第~\ref{sec_03RE}章)、
+ 平均力ダイナミクス(第~\ref{sec_04MFD}章)
+ Multicanonical 法(第~\ref{sec_05MC}章)
+について、解説を行う。

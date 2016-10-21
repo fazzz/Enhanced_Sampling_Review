@@ -1,0 +1,117 @@
+\documentclass[11pt,a4papaer]{jsarticle}
+
+\usepackage{geometry}
+\usepackage[dvipdfmx]{graphicx}
+
+\usepackage{amsmath}
+\usepackage{ascmac}
+
+\newcommand{\beq}{\begin{eqnarray}}
+\newcommand{\eeq}{\end{eqnarray}}
+\newcommand{\tint}{\int_{-\infty}^{\infty}}
+\newcommand{\ket}{\rangle}
+\newcommand{\bra}{\langle}
+\newcommand{\del}{\partial}
+\newcommand{\tr}{\, {\rm tr}\, }
+\newcommand{\half}{\frac{1}{2}}
+
+\newcommand{\pslash}{{p\hspace{-5pt}/}}
+\newcommand{\dslash}{{\del \hspace{-6pt}/}}
+\newcommand{\zslash}{{z\hspace{-5pt}/}}
+\newcommand{\kslash}{{k\hspace{-6pt}/}}
+
+\newcommand{\bqcode}{\begin{verbatim}}
+\newcommand{\eqcode}{\end{quote}}
+\newcommand{\bcode}{\begin{lstlisting}}
+\newcommand{\ecode}{\end{lstlisting}}
+
+\def\gsim{\displaystyle\mathop{>}_{\sim}}
+\def\lsim{\displaystyle\mathop{<}_{\sim}}
+\def\angstrom{\displaystyle\mathop{{\rm A}}^{\circ}}
+
+\begin{document}
+
+\date{}
+
+\title  { {\small Journal Review Seminar@MTBYS Lab.} \\
+  効率的サンプリンングを用いた \\
+  生体高分子の自由エネルギー計算}
+ 
+%\author{山守　優}
+
+\maketitle
+\thispagestyle{empty}
+
+\newpage
+
+\tableofcontents
+
+\thispagestyle{empty}
+
+\newpage
+
+\pagestyle{myheadings}
+\markright{\footnotesize \sf Journal Review Seminar@MTBYS Lab.}
+
+\setcounter{page}{1}
+
+%第1章
+\section{生体高分子の自由エネルギー計算と効率的サンプリンング \label{sec_01intro}}
+\setcounter{equation}{0}
+\renewcommand{\theequation}{\arabic{section}-\arabic{equation}}
+\input{01intro}
+
+\newpage
+
+%第2章
+\section{Umbrella Sampling と再重み付け \label{sec_02US}}
+\setcounter{equation}{0}
+\renewcommand{\theequation}{\arabic{section}-\arabic{equation}}
+\input{02US}
+
+\newpage
+
+%第3章
+\section{Replica 交換法 \label{sec_03RE}}
+\setcounter{equation}{0}
+\renewcommand{\theequation}{\arabic{section}-\arabic{equation}}
+\input{03RE}
+
+\newpage
+
+%第4章
+\section{平均力ダイナミクス \label{sec_04MFD}}
+\setcounter{equation}{0}
+\renewcommand{\theequation}{\arabic{section}-\arabic{equation}}
+\input{04MFD}
+
+\newpage
+
+%第5章
+\section{Multicanonical 法 \label{sec_05MC}}
+\setcounter{equation}{0}
+\renewcommand{\theequation}{\arabic{section}-\arabic{equation}}
+%\input{05MC}
+
+\newpage
+
+%第6章
+\section{その他の方法 \label{sec_06others}}
+\setcounter{equation}{0}
+\renewcommand{\theequation}{\arabic{section}-\arabic{equation}}
+%\input{06others}
+
+%参考文献
+%\renewcommand{\bibname}{参考文献}
+%\addcontentsline{toc}{chapter}{\bibname}%目次に出力
+%\bibliographystyle{jplain}
+%\thispagestyle{myheadings}
+%\markboth{}{\bibname}
+%\bibliography{Enhanced_Sampling}
+
+%%索引
+%\printindex
+
+%%奥付
+%\input{999colophon}
+\end{document}
